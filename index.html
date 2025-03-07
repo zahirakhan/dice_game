@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DICE GAME</title>
+    <style>
+      body {
+        font-family: "Franklin Gothic SMALL", "Arial Narrow", Arial, sans-serif;
+        text-align: center;
+        background: linear-gradient(to right, #43cea2, #185a9d);
+        margin: 0;
+        padding: 20px;
+        color: white;
+      }
+      .container {
+        background: rgba(255, 255, 255, 0.255);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        display: inline-block;
+        color: rgb(255, 255, 255);
+        border: rgb(255, 255, 255) 2px solid;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin: 10px;
+        border: rgb(255, 255, 255) 2px solid;
+        background: #185a9d;
+        color: rgb(255, 255, 255);
+        border-radius: 20px;
+      }
+      button:hover {
+        background: #43cea2;
+        border: 2px white solid;
+      }
+      input {
+        background-color: #ffffff36;
+        padding: 10px;
+        color: #ffffff;
+        margin: 10px;
+        border-radius: 20px;
+        border: 1px solid #ffffff;
+      }
+      #winner {
+        font-size: 34px;
+        color: green;
+        font-weight: bold;
+      }
+      .hidden {
+        display: none;
+      }
+      #dice {
+        font-size: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎲 DICE GAME 🎲</h1>
+
+      <!-- Player Name Input -->
+      <div id="nameInput">
+        <h3>Enter Player Names:</h3>
+        <input type="text" id="player1" placeholder="Player 1 Name" />
+        <input type="text" id="player2" placeholder="Player 2 Name" />
+        <button onclick="startGame()">Start Game</button>
+      </div>
+
+      <!-- Game Section -->
+      <div id="gameSection" class="hidden">
+        <h3>Current Turn: <span id="turn"></span></h3>
+        <h2 id="dice">🎲</h2>
+        <button onclick="rollDice()">Roll Dice</button>
+        <h3>
+          <span id="player1_name"></span> Score:
+          <span id="player1_score">0</span>
+        </h3>
+        <h3>
+          <span id="player2_name"></span> Score:
+          <span id="player2_score">0</span>
+        </h3>
+        <h3>Rolls Left: <span id="rolls_left">10</span></h3>
+        <p id="winner"></p>
+      </div>
+    </div>
+
+    <script>
+      function startGame() {
+        let player1 = document.getElementById("player1").value;
+        let player2 = document.getElementById("player2").value;
+
+        if (player1 === "" || player2 === "") {
+          alert("Please enter both player names!");
+          return;
+        }
+
+        fetch("/start_game", {
+          method: "POST",
+          body: new URLSearchParams({ player1, player2 }),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              document.getElementById("player1_name").innerText = player1;
+              document.getElementById("player2_name").innerText = player2;
+              document.getElementById("turn").innerText = player1;
+              document.getElementById("nameInput").classList.add("hidden");
+              document.getElementById("gameSection").classList.remove("hidden");
+            }
+          });
+      }
+
+      function rollDice() {
+        fetch("/roll")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.winner) {
+              document.getElementById("winner").innerText = data.winner;
+              document.getElementById("rolls_left").innerText = "0";
+              return;
+            }
+
+            document.getElementById("dice").innerText = data.dice;
+            document.getElementById("player1_score").innerText =
+              data.player1_score;
+            document.getElementById("player2_score").innerText =
+              data.player2_score;
+            document.getElementById("turn").innerText =
+              data.turn === "player1" ? data.player1_name : data.player2_name;
+            document.getElementById("rolls_left").innerText = data.rolls_left;
+          });
+      }
+    </script>
+  </body>
+</html>
